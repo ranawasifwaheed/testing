@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Use other providers like MongoDB, PostgreSQL, MariaDB, MySQL, etc. Just read Prisma docs
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Storing sessions information
+model Session {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @unique
+  session   String?
+}
+
+/// Storing group information
+model Group {
+  id           Int      @id @default(autoincrement())
+  /// Whatsapp group Jid
+  groupId      String   @unique
+  /// Group Name
+  name         String
+  /// Whatsapp group default language
+  language     String
+  /// Opts for notify all group events
+  notify       Boolean  @default(false)
+  /// Opts for notify welcome message
+  welcome      Boolean  @default(false)
+  /// Opts for notify leave message
+  leave        Boolean  @default(false)
+  /// Is Group got ban?
+  ban          Boolean  @default(false)
+  /// Is Group got mute?
+  mute         Boolean  @default(false)
+  /// Opts for anti WhatsApp group link
+  antilink     Boolean  @default(false)
+  /// Opts for anti other WhatsApp bot
+  antibot      Boolean  @default(false)
+  /// Opts for anti viewonce message
+  antiviewonce Boolean  @default(false)
+  /// Opts for anti other country, by country number code
+  anticountry  AntiCountry? @relation(fields: [anticountryNumber], references: [number])
+  anticountryNumber String?
+}
+
+model AntiCountry {
+  number String  @id
+  active Boolean
+  groups Group[]
+}
+
+model GroupMetadata {
+  id           Int         @id @default(autoincrement())
+  /// Whatsapp group Jid
+  groupId      String      @unique
+  /// Whatsapp group Name
+  subject      String
+  /// Whatsapp group creation date
+  creation     Int
+  /// Whatsapp group owner
+  owner        String
+  /// Whatsapp group description
+  desc         String
+  /// Whatsapp group restrict, only admin allows editing group
+  restrict     Boolean     @default(false)
+  /// Whatsapp group restrict, only admin allows sending messages
+  announce     Boolean     @default(false)
+}
+
+model Participants {
+  id              String      @id
+  admin           GroupAdmin?
+  groupMetadataId Int
+  @@unique([id])
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  /// Whatsapp user Jid
+  userId   String  @unique
+  /// Whatsapp user Name
+  name     String
+  /// Whatsapp user language
+  language String
+  /// Whatsapp user limit
+  limit    Int
+  /// Is user got ban?
+  ban      Boolean @default(false)
+  /// User role
+  role     Role    @default(basic)
+  /// User role expired if has role (premium, vip)
+  expire   Int     @default(0)
+}
+
+enum GroupAdmin {
+  OWNER
+  MODERATOR
+  MEMBER
+  // Add other roles as needed
+}
+
+enum Role {
+  basic
+  premium
+  vip
+}
+
+model QRCode {
+  id        Int      @id @default(autoincrement())
+  dataURL   String
+  createdAt DateTime @default(now())
+}
