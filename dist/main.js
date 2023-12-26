@@ -118,7 +118,7 @@ setImmediate(async () => {
             aruga.log((0, util_1.inspect)(err, true), "error");
             clearProcess();
         }), fastify
-            .listen({ host: "127.0.0.1", port: process.env.PORT || 3306 })
+            .listen({ host: "127.0.0.1", port: process.env.PORT || 3000 })
             .then((address) => aruga.log(`Server run on ${address}`))
             .catch((err) => {
             aruga.log((0, util_1.inspect)(err, true), "error");
