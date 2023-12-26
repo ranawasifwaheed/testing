@@ -1,60 +1,62 @@
+// This is your updated Prisma schema
+
 generator client {
   provider = "prisma-client-js"
 }
 
-// Use other providers like MongoDB, PostgreSQL, MariaDB, MySQL, etc. Just read Prisma docs
+// Use other providers like MongoDB, postgreSQL, MariaDB, MySQL, etc. Just read Prisma docs
 datasource db {
-  provider = "mysql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 /// Storing sessions information
 model Session {
-  id        Int      @id @default(autoincrement())
-  sessionId String   @unique
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String  @unique
   session   String?
 }
 
 /// Storing group information
 model Group {
-  id           Int      @id @default(autoincrement())
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
   /// Whatsapp group Jid
-  groupId      String   @unique
+  groupId      String      @unique
   /// Group Name
   name         String
   /// Whatsapp group default language
   language     String
   /// Opts for notify all group events
-  notify       Boolean  @default(false)
+  notify       Boolean     @default(false)
   /// Opts for notify welcome message
-  welcome      Boolean  @default(false)
+  welcome      Boolean     @default(false)
   /// Opts for notify leave message
-  leave        Boolean  @default(false)
+  leave        Boolean     @default(false)
   /// Is Group got ban?
-  ban          Boolean  @default(false)
+  ban          Boolean     @default(false)
   /// Is Group got mute?
-  mute         Boolean  @default(false)
+  mute         Boolean     @default(false)
   /// Opts for anti WhatsApp group link
-  antilink     Boolean  @default(false)
+  antilink     Boolean     @default(false)
   /// Opts for anti other WhatsApp bot
-  antibot      Boolean  @default(false)
+  antibot      Boolean     @default(false)
   /// Opts for anti viewonce message
-  antiviewonce Boolean  @default(false)
+  antiviewonce Boolean     @default(false)
   /// Opts for anti other country, by country number code
-  anticountry  AntiCountry? @relation(fields: [anticountryNumber], references: [number])
-  anticountryNumber String?
+  anticountry  AntiCountry
 }
 
-model AntiCountry {
-  number String  @id
+type AntiCountry {
+  /// ["51", "60"] will kick member that has a number that starts from "51, 60" (List country number code)
+  number String[]
+  /// Its active?
   active Boolean
-  groups Group[]
 }
 
 model GroupMetadata {
-  id           Int         @id @default(autoincrement())
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
   /// Whatsapp group Jid
-  groupId      String      @unique
+  groupId      String         @unique
   /// Whatsapp group Name
   subject      String
   /// Whatsapp group creation date
@@ -64,20 +66,28 @@ model GroupMetadata {
   /// Whatsapp group description
   desc         String
   /// Whatsapp group restrict, only admin allows editing group
-  restrict     Boolean     @default(false)
+  restrict     Boolean        @default(false)
   /// Whatsapp group restrict, only admin allows sending messages
-  announce     Boolean     @default(false)
+  announce     Boolean        @default(false)
+  /// Whatsapp group participant list
+  participants Participants[]
 }
 
-model Participants {
-  id              String      @id
-  admin           GroupAdmin?
-  groupMetadataId Int
-  @@unique([id])
+type Participants {
+  /// Participant Jid
+  id    String
+  /// Is participant an admin?
+  admin GroupAdmin?
 }
 
+enum GroupAdmin {
+  admin
+  superadmin
+}
+
+/// Storing users session
 model User {
-  id       Int     @id @default(autoincrement())
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
   /// Whatsapp user Jid
   userId   String  @unique
   /// Whatsapp user Name
@@ -94,21 +104,16 @@ model User {
   expire   Int     @default(0)
 }
 
-enum GroupAdmin {
-  OWNER
-  MODERATOR
-  MEMBER
-  // Add other roles as needed
-}
-
 enum Role {
   basic
   premium
   vip
 }
 
+/// Storing QR code data URLs
 model QRCode {
-  id        Int      @id @default(autoincrement())
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
   dataURL   String
   createdAt DateTime @default(now())
 }
+
