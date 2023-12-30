@@ -6,7 +6,7 @@ generator client {
 
 // Use other providers like MongoDB, postgreSQL, MariaDB, MySQL, etc. Just read Prisma docs
 datasource db {
-  provider = "mongodb"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 

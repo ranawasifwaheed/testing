@@ -60,18 +60,37 @@ const whatsappRoutes = (fastify, aruga) => {
         });
         instance.get("/latest-qr-code", async (request, reply) => {
             try {
+                // Get user_id and phone_number from request
+                const { user_id, phone_number } = request.query;
+        
+                // Check if user_id and phone_number are provided
+                if (!user_id || !phone_number) {
+                    reply.code(400).send({
+                        message: "User ID and phone number are required",
+                        error: "Bad Request",
+                        statusCode: 400
+                    });
+                    return;
+                }
+        
+                // Validate user_id and phone_number if needed
+        
                 // Fetch the latest QR code from the database
                 const latestQRCode = await getLatestQRCode();
         
                 if (latestQRCode) {
                     reply.send({
                         message: latestQRCode,
+                        user_id: user_id,
+                        phone_number: phone_number,
                         error: "Success",
                         statusCode: 200
                     });
                 } else {
                     reply.code(404).send({
                         message: "No QR code found in the database",
+                        user_id: user_id,
+                        phone_number: phone_number,
                         error: "Success",
                         statusCode: 404
                     });
@@ -80,6 +99,8 @@ const whatsappRoutes = (fastify, aruga) => {
                 console.error('Error handling the latest QR code request:', error);
                 reply.code(500).send({
                     message: 'Internal Server Error',
+                    user_id: user_id,
+                    phone_number: phone_number,
                     error: "Error",
                     statusCode: 500
                 });
