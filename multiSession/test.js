@@ -11,7 +11,10 @@ app.use(express.json());
 
 async function createAndInitializeClient(clientId, res) {
     const client = new Client({
-        authStrategy: new LocalAuth({ clientId: clientId })
+        authStrategy: new LocalAuth({ clientId: clientId }),
+        puppeteer: {
+            args: ['--no-sandbox'],
+        },
     });
 
     client.on('qr', async (qr) => {
@@ -19,8 +22,8 @@ async function createAndInitializeClient(clientId, res) {
         await prisma.session.create({
             data: {
                 clientId,
-                qrCodeData: qr
-            }
+                qrCodeData: qr,
+            },
         });
 
         res.status(200).json({ qrCodeData: qr, message: 'Client created and initialized successfully.' });
@@ -31,7 +34,7 @@ async function createAndInitializeClient(clientId, res) {
     });
 
     client.initialize();
-    return client;
+    return client;
 }
 
 app.post('/create-client', async (req, res) => {
