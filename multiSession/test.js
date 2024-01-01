@@ -1,3 +1,4 @@
+const puppeteer = require('puppeteer');
 const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
@@ -10,11 +11,13 @@ const port = 3000;
 app.use(express.json());
 
 async function createAndInitializeClient(clientId, res) {
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
+
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: clientId }),
-        puppeteer: {
-            args: ['--no-sandbox'],
-        },
+        puppeteer: { browserWSEndpoint: await browser.wsEndpoint() },
     });
 
     client.on('qr', async (qr) => {
@@ -34,7 +37,7 @@ async function createAndInitializeClient(clientId, res) {
     });
 
     client.initialize();
-    return client;
+    return client;
 }
 
 app.post('/create-client', async (req, res) => {
