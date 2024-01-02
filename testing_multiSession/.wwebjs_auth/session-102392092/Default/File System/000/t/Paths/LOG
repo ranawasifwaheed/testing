@@ -1,0 +1,4 @@
+2024/01/02-00:31:46.923 3320 Creating DB D:\final\.wwebjs_auth\session-102392092\Default\File System\000\t\Paths since it was missing.
+2024/01/02-00:31:46.927 3320 Reusing MANIFEST D:\final\.wwebjs_auth\session-102392092\Default\File System\000\t\Paths/MANIFEST-000001
+2024/01/02-00:31:46.927 3320 Recovering log #3
+2024/01/02-00:31:46.927 3320 Reusing old log D:\final\.wwebjs_auth\session-102392092\Default\File System\000\t\Paths/000003.log 
