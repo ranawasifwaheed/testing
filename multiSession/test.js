@@ -11,7 +11,8 @@ app.use(express.json());
 async function createAndInitializeClient(clientId, res) {
     try {
         let qrCodeData;
-        let responseSent = false; 
+        let responseSent = false;
+        let qrCodeTimeout;
 
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
@@ -46,8 +47,11 @@ async function createAndInitializeClient(clientId, res) {
 
             qrCodeData = qr;
             if (!responseSent) {
-                responseSent = true;
-                res.status(200).json({ qrCodeData, message: 'Client created and initialized successfully.' });
+                clearTimeout(qrCodeTimeout);
+                qrCodeTimeout = setTimeout(() => {
+                    responseSent = true;
+                    res.status(408).json({ message: 'Timeout: Client not ready within 40 seconds.' });
+                }, 40000);
             }
         });
 
