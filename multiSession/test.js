@@ -24,7 +24,7 @@ async function createAndInitializeClient(clientId, res) {
         });
 
         client.on('qr', async (qr) => {
-            if (!generateQRCode) {
+            if (!generateQRCode || responseSent) {
                 return;
             }
 
@@ -58,8 +58,10 @@ async function createAndInitializeClient(clientId, res) {
                 clearTimeout(qrCodeTimeout);
 
                 qrCodeTimeout = setTimeout(() => {
-                    responseSent = true;
-                    res.status(408).json({ message: 'Timeout: Client not ready within 40 seconds.' });
+                    if (!responseSent) {
+                        responseSent = true;
+                        res.status(408).json({ message: 'Timeout: Client not ready within 40 seconds.' });
+                    }
                 }, 40000);
             }
 
