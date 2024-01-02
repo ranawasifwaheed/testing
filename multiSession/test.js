@@ -13,6 +13,7 @@ async function createAndInitializeClient(clientId, res) {
         let qrCodeData;
         let responseSent = false;
         let qrCodeTimeout;
+        let generateQRCode = true;
 
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
@@ -23,6 +24,10 @@ async function createAndInitializeClient(clientId, res) {
         });
 
         client.on('qr', async (qr) => {
+            if (!generateQRCode) {
+                return;
+            }
+
             console.log('QR RECEIVED', qr);
 
             const existingSession = await prisma.session.findUnique({
@@ -46,13 +51,19 @@ async function createAndInitializeClient(clientId, res) {
             }
 
             qrCodeData = qr;
-            if (!responseSent) {
+
+            if (!responseSent && generateQRCode) {
+                res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
+
                 clearTimeout(qrCodeTimeout);
+
                 qrCodeTimeout = setTimeout(() => {
                     responseSent = true;
                     res.status(408).json({ message: 'Timeout: Client not ready within 40 seconds.' });
                 }, 40000);
             }
+
+            generateQRCode = false;
         });
 
         client.on('ready', async () => {
