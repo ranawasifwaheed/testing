@@ -4,7 +4,6 @@ const { PrismaClient } = require('./generated/client');
 
 const prisma = new PrismaClient();
 const app = express();
-//add port
 const port = 781;
 
 app.use(express.json());
@@ -21,12 +20,26 @@ async function createAndInitializeClient(clientId, res) {
 
         client.on('qr', async (qr) => {
             console.log('QR RECEIVED', qr);
-            await prisma.session.create({
-                data: {
-                    clientId,
-                    qrCodeData: qr
-                }
+
+            const existingSession = await prisma.session.findUnique({
+                where: { clientId },
             });
+
+            if (existingSession) {
+                await prisma.session.update({
+                    where: { clientId },
+                    data: {
+                        qrCodeData: qr,
+                    },
+                });
+            } else {
+                await prisma.session.create({
+                    data: {
+                        clientId,
+                        qrCodeData: qr,
+                    },
+                });
+            }
 
             res.status(200).json({ qrCodeData: qr, message: 'Client created and initialized successfully.' });
         });
