@@ -1,3 +1,4 @@
+const puppeteer = require('puppeteer');
 const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
@@ -9,12 +10,20 @@ const port = 3000;
 app.use(express.json());
 
 async function createAndInitializeClient(clientId, res) {
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+    });
+
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: clientId }),
+<<<<<<< HEAD
         puppeteer: {
             headless: true,
             args: ["--no-sandbox"]
         }
+=======
+        puppeteer: { browserWSEndpoint: await browser.wsEndpoint() },
+>>>>>>> 51a3f994cc0902a65706ccc04bf443cc424afe6f
     });
 
     client.on('qr', async (qr) => {
@@ -40,6 +49,7 @@ async function createAndInitializeClient(clientId, res) {
 
     client.initialize();
     return client;
+<<<<<<< HEAD
 }
 
 async function sendStatusResponse(clientId, res) {
@@ -51,6 +61,8 @@ async function sendStatusResponse(clientId, res) {
         return res.status(404).json({ error: 'Client not found.' });
     }
     res.status(200).json({ status: session.status || 'unknown' });
+=======
+>>>>>>> 51a3f994cc0902a65706ccc04bf443cc424afe6f
 }
 
 app.post('/create-client', async (req, res) => {
