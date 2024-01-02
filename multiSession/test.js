@@ -4,6 +4,7 @@ const { PrismaClient } = require('./generated/client');
 
 const prisma = new PrismaClient();
 const app = express();
+//add port
 const port = 781;
 
 app.use(express.json());
