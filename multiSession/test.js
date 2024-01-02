@@ -10,6 +10,9 @@ app.use(express.json());
 
 async function createAndInitializeClient(clientId, res) {
     try {
+        let qrCodeData;
+        let responseSent = false; 
+
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
             puppeteer: {
@@ -41,7 +44,11 @@ async function createAndInitializeClient(clientId, res) {
                 });
             }
 
-            res.status(200).json({ qrCodeData: qr, message: 'Client created and initialized successfully.' });
+            qrCodeData = qr;
+            if (!responseSent) {
+                responseSent = true;
+                res.status(200).json({ qrCodeData, message: 'Client created and initialized successfully.' });
+            }
         });
 
         client.on('ready', async () => {
