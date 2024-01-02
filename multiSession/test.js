@@ -4,42 +4,47 @@ const { PrismaClient } = require('./generated/client');
 
 const prisma = new PrismaClient();
 const app = express();
-const port = 3000;
+const port = 781;
 
 app.use(express.json());
 
 async function createAndInitializeClient(clientId, res) {
-    const client = new Client({
-        authStrategy: new LocalAuth({ clientId: clientId }),
-        puppeteer: {
-            headless: true,
-            args: ["--no-sandbox"]
-        }
-    });
-
-    client.on('qr', async (qr) => {
-        console.log('QR RECEIVED', qr);
-        await prisma.session.create({
-            data: {
-                clientId,
-                qrCodeData: qr
+    try {
+        const client = new Client({
+            authStrategy: new LocalAuth({ clientId: clientId }),
+            puppeteer: {
+                headless: true,
+                args: ["--no-sandbox"]
             }
         });
 
-        res.status(200).json({ qrCodeData: qr, message: 'Client created and initialized successfully.' });
-    });
+        client.on('qr', async (qr) => {
+            console.log('QR RECEIVED', qr);
+            await prisma.session.create({
+                data: {
+                    clientId,
+                    qrCodeData: qr
+                }
+            });
 
-    client.on('ready', async () => {
-        console.log('Client is ready!');
-        await prisma.session.update({
-            where: { clientId },
-            data: { status: 'ready' }
+            res.status(200).json({ qrCodeData: qr, message: 'Client created and initialized successfully.' });
         });
-        sendStatusResponse(clientId, res);
-    });
 
-    client.initialize();
-    return client;
+        client.on('ready', async () => {
+            console.log('Client is ready!');
+            await prisma.session.update({
+                where: { clientId },
+                data: { status: 'ready' }
+            });
+            sendStatusResponse(clientId, res);
+        });
+
+        client.initialize();
+        return client;
+    } catch (error) {
+        console.error('Error creating and initializing client:', error.message);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
 }
 
 async function sendStatusResponse(clientId, res) {
@@ -59,7 +64,8 @@ app.post('/create-client', async (req, res) => {
     if (!clientId) {
         return res.status(400).json({ error: 'Client ID is required in the request body.' });
     }
-    const client = await createAndInitializeClient(clientId, res);
+
+    await createAndInitializeClient(clientId, res);
 });
 
 app.get('/status', async (req, res) => {
@@ -73,5 +79,5 @@ app.get('/status', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://207.244.239.151:${port}`);
 });
