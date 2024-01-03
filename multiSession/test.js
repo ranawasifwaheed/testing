@@ -8,10 +8,10 @@ const port = 781;
 
 app.use(express.json());
 
-async function createAndInitializeClient(clientId, res) {
+async function createAndInitializeClient(clientId, phone_number, res) {
     try {
         let qrCodeData;
-        let responseSent = false;
+        let base64EncodedData;
         let qrCodeTimeout;
         let generateQRCode = true;
 
@@ -24,57 +24,48 @@ async function createAndInitializeClient(clientId, res) {
         });
 
         client.on('qr', async (qr) => {
-            if (!generateQRCode || responseSent) {
+            if (!generateQRCode) {
                 return;
             }
 
             console.log('QR RECEIVED', qr);
 
-            const existingSession = await prisma.session.findUnique({
-                where: { clientId },
-            });
-
             const timestamp = Date.now();
 
-            if (existingSession) {
-                await prisma.session.update({
+            try {
+                await prisma.session.upsert({
                     where: { clientId },
-                    data: {
-                        qrCodeData: qr,
-                        createdAt: timestamp,
-                    },
+                    update: { phone_number, qrCodeData: base64EncodedData },
+                    create: { clientId, phone_number, qrCodeData: base64EncodedData, createdAt: timestamp },
                 });
-            } else {
-                await prisma.session.create({
-                    data: {
-                        clientId,
-                        qrCodeData: qr,
-                        createdAt: timestamp,
-                    },
-                });
+
+                qrCodeData = qr;
+                base64EncodedData = Buffer.from(qrCodeData).toString('base64');
+
+                if (!generateQRCode) {
+                    res.status(200).json({ base64EncodedData, message: 'QR code sent. Waiting for the client to be ready.' });
+
+                    clearTimeout(qrCodeTimeout);
+
+                    qrCodeTimeout = setTimeout(() => {
+                    }, 40000);
+                }
+
+                generateQRCode = false;
+            } catch (error) {
+                console.error('Error updating session in the database:', error.message);
+                res.status(500).json({ error: 'Internal server error.' });
             }
-
-            qrCodeData = qr;
-
-            if (!responseSent && generateQRCode) {
-                res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
-
-                clearTimeout(qrCodeTimeout);
-
-                qrCodeTimeout = setTimeout(() => {
-                }, 40000);
-            }
-
-            generateQRCode = false;
         });
 
         client.on('ready', async () => {
             console.log('Client is ready!');
-            await prisma.session.update({
+            await prisma.session.upsert({
                 where: { clientId },
-                data: { status: 'ready' }
+                update: { status: 'ready', phone_number, qrCodeData: base64EncodedData },
+                create: { clientId, status: 'ready', phone_number, qrCodeData: base64EncodedData },
             });
-            sendStatusResponse(clientId, res);
+            sendStatusResponse(clientId, phone_number, res);
         });
 
         client.initialize();
@@ -85,35 +76,81 @@ async function createAndInitializeClient(clientId, res) {
     }
 }
 
-async function sendStatusResponse(clientId, res) {
-    const session = await prisma.session.findUnique({
-        where: { clientId },
-    });
+async function sendStatusResponse(clientId, phone_number, res) {
+    try {
+        const session = await prisma.session.findUnique({
+            where: { clientId },
+        });
 
-    if (!session) {
-        return res.status(404).json({ error: 'Client not found.' });
+        if (!session) {
+            res.status(404).json({ error: 'Client not found.' });
+        } else {
+            res.status(200).json({
+                clientId: session.clientId,
+                status: session.status || 'unknown',
+                phone_number: phone_number || session.phone_number,
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching session status:', error.message);
+        res.status(500).json({ error: 'Internal server error.' });
     }
-    res.status(200).json({ status: session.status || 'unknown' });
 }
 
-app.get('/create-client', async (req, res) => {
-    const clientId = req.query.clientId;
-
-    if (!clientId) {
-        return res.status(400).json({ error: 'Client ID is required as a query parameter.' });
+async function sendMessage(client, to, message) {
+    try {
+        await client.sendMessage(to, message);
+        console.log('Message sent successfully.');
+    } catch (error) {
+        console.error('Error sending message:', error.message);
+        throw error; // Propagate the error to handle it at the calling function if needed
     }
+}
 
-    await createAndInitializeClient(clientId, res);
+app.post('/create-client', async (req, res) => {
+    const clientId = req.body.clientId;
+    const phone_number = req.body.phone_number;
+
+    if (!clientId || !phone_number) {
+        res.status(400).json({ error: 'Client ID and phone number are required in the request body.' });
+    } else {
+        await createAndInitializeClient(clientId, phone_number, res);
+    }
+});
+
+app.post('/send-message', async (req, res) => {
+    const { clientId, to, message } = req.body;
+
+    if (!clientId || !to || !message) {
+        res.status(400).json({ error: 'Client ID, recipient (to), and message are required in the request body.' });
+    } else {
+        try {
+            const session = await prisma.session.findUnique({
+                where: { clientId },
+            });
+
+            if (!session || session.status !== 'ready') {
+                res.status(404).json({ error: 'Client not found or not ready.' });
+            } else {
+                const client = await createAndInitializeClient(clientId, session.phone_number, res);
+                await sendMessage(client, to, message);
+                res.status(200).json({ success: true, message: 'Message sent successfully.' });
+            }
+        } catch (error) {
+            console.error('Error sending message:', error.message);
+            res.status(500).json({ error: 'Internal server error.' });
+        }
+    }
 });
 
 app.get('/status', async (req, res) => {
-    const { clientId } = req.query;
+    const { clientId, phone_number } = req.query;
 
     if (!clientId) {
-        return res.status(400).json({ error: 'Client ID is required as a query parameter.' });
+        res.status(400).json({ error: 'Client ID is required as a query parameter.' });
+    } else {
+        sendStatusResponse(clientId, phone_number, res);
     }
-
-    sendStatusResponse(clientId, res);
 });
 
 app.listen(port, () => {

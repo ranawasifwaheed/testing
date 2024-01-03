@@ -11,8 +11,10 @@ datasource db {
 }
 
 model Session {
-  id          Int      @id @default(autoincrement())
-  clientId    String      @unique
-  qrCodeData  String
-  createdAt   Int
+  id           Int      @id @default(autoincrement())
+  clientId     String    @unique
+  qrCodeData   String
+  status       String
+  phone_number String
+  createdAt    Int
 }
