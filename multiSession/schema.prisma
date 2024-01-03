@@ -12,7 +12,7 @@ datasource db {
 
 model Session {
   id          Int      @id @default(autoincrement())
-  clientId      String   @unique
+  clientId    Int      @unique
   qrCodeData  String
-  createdAt   DateTime @default(now())
+  createdAt   Int      @default(auto()) @updatedAt
 }

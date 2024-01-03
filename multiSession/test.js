@@ -93,15 +93,16 @@ async function sendStatusResponse(clientId, res) {
     res.status(200).json({ status: session.status || 'unknown' });
 }
 
-app.post('/create-client', async (req, res) => {
-    const { clientId } = req.body;
+app.get('/create-client', async (req, res) => {
+    const clientId = req.query.clientId;
 
     if (!clientId) {
-        return res.status(400).json({ error: 'Client ID is required in the request body.' });
+        return res.status(400).json({ error: 'Client ID is required as a query parameter.' });
     }
 
     await createAndInitializeClient(clientId, res);
 });
+
 
 app.get('/status', async (req, res) => {
     const { clientId } = req.query;
