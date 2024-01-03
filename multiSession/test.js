@@ -103,26 +103,26 @@ async function sendMessage(client, to, message) {
         console.log('Message sent successfully.');
     } catch (error) {
         console.error('Error sending message:', error.message);
-        throw error; // Propagate the error to handle it at the calling function if needed
+        throw error;
     }
 }
 
-app.post('/create-client', async (req, res) => {
-    const clientId = req.body.clientId;
-    const phone_number = req.body.phone_number;
+app.get('/create-client', async (req, res) => {
+    const clientId = req.query.clientId;
+    const phone_number = req.query.phone_number;
 
     if (!clientId || !phone_number) {
-        res.status(400).json({ error: 'Client ID and phone number are required in the request body.' });
+        res.status(400).json({ error: 'Client ID and phone number are required as query parameters.' });
     } else {
         await createAndInitializeClient(clientId, phone_number, res);
     }
 });
 
-app.post('/send-message', async (req, res) => {
-    const { clientId, to, message } = req.body;
+app.get('/send-message', async (req, res) => {
+    const { clientId, to, message } = req.query;
 
     if (!clientId || !to || !message) {
-        res.status(400).json({ error: 'Client ID, recipient (to), and message are required in the request body.' });
+        res.status(400).json({ error: 'Client ID, recipient (to), and message are required as query parameters.' });
     } else {
         try {
             const session = await prisma.session.findUnique({
