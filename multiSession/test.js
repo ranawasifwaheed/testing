@@ -33,14 +33,14 @@ async function createAndInitializeClient(clientId, phone_number, res) {
             const timestamp = Date.now();
 
             try {
-                await prisma.session.upsert({
-                    where: { clientId },
-                    update: { phone_number, qrCodeData: base64EncodedData },
-                    create: { clientId, phone_number, qrCodeData: base64EncodedData, createdAt: timestamp },
-                });
-
                 qrCodeData = qr;
                 base64EncodedData = Buffer.from(qrCodeData).toString('base64');
+
+                await prisma.session.upsert({
+                    where: { clientId },
+                    update: { phone_number, qrCodeData: base64EncodedData, createdAt: timestamp },
+                    create: { clientId, phone_number, qrCodeData: base64EncodedData, createdAt: timestamp },
+                });
 
                 if (!generateQRCode) {
                     res.status(200).json({ base64EncodedData, message: 'QR code sent. Waiting for the client to be ready.' });
