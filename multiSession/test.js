@@ -34,11 +34,14 @@ async function createAndInitializeClient(clientId, res) {
                 where: { clientId },
             });
 
+            const timestamp = Date.now();
+
             if (existingSession) {
                 await prisma.session.update({
                     where: { clientId },
                     data: {
                         qrCodeData: qr,
+                        createdAt: timestamp,
                     },
                 });
             } else {
@@ -46,6 +49,7 @@ async function createAndInitializeClient(clientId, res) {
                     data: {
                         clientId,
                         qrCodeData: qr,
+                        createdAt: timestamp,
                     },
                 });
             }
@@ -58,7 +62,6 @@ async function createAndInitializeClient(clientId, res) {
                 clearTimeout(qrCodeTimeout);
 
                 qrCodeTimeout = setTimeout(() => {
-                    
                 }, 40000);
             }
 
@@ -102,7 +105,6 @@ app.get('/create-client', async (req, res) => {
 
     await createAndInitializeClient(clientId, res);
 });
-
 
 app.get('/status', async (req, res) => {
     const { clientId } = req.query;
