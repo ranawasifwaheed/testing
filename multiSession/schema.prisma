@@ -14,6 +14,6 @@ model Session {
   id           Int      @id @default(autoincrement())
   clientId     String    @unique
   qrCodeData   String
-  phone_number String?
+  phone_number String?   @unique
   createdAt    Int
 }
