@@ -11,8 +11,6 @@ app.use(express.json());
 async function createAndInitializeClient(clientId, phone_number, res) {
     try {
         let qrCodeData;
-        let base64EncodedData;
-        let qrCodeTimeout;
         let generateQRCode = true;
 
         const client = new Client({
@@ -34,24 +32,21 @@ async function createAndInitializeClient(clientId, phone_number, res) {
 
             try {
                 qrCodeData = qr;
-                base64EncodedData = Buffer.from(qrCodeData).toString('base64');
-
                 await prisma.session.upsert({
                     where: { clientId },
-                    update: { phone_number, qrCodeData: base64EncodedData, createdAt: timestamp },
-                    create: { clientId, phone_number, qrCodeData: base64EncodedData, createdAt: timestamp },
+                    update: { qrCodeData, createdAt: timestamp },
+                    create: { clientId, phone_number, qrCodeData, createdAt: timestamp },
                 });
 
-                if (!generateQRCode) {
-                    res.status(200).json({ base64EncodedData, message: 'QR code sent. Waiting for the client to be ready.' });
+                res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
 
-                    clearTimeout(qrCodeTimeout);
+                // Consider clearing the timeout if necessary
+                clearTimeout(qrCodeTimeout);
 
-                    qrCodeTimeout = setTimeout(() => {
-                    }, 40000);
-                }
-
-                generateQRCode = false;
+                // Set a timeout if needed
+                qrCodeTimeout = setTimeout(() => {
+                    // Handle timeout actions
+                }, 40000);
             } catch (error) {
                 console.error('Error updating session in the database:', error.message);
                 res.status(500).json({ error: 'Internal server error.' });
@@ -62,8 +57,8 @@ async function createAndInitializeClient(clientId, phone_number, res) {
             console.log('Client is ready!');
             await prisma.session.upsert({
                 where: { clientId },
-                update: { status: 'ready', phone_number, qrCodeData: base64EncodedData },
-                create: { clientId, status: 'ready', phone_number, qrCodeData: base64EncodedData },
+                update: { status: 'ready', qrCodeData },
+                create: { clientId, status: 'ready', phone_number, qrCodeData },
             });
             sendStatusResponse(clientId, phone_number, res);
         });
@@ -114,7 +109,12 @@ app.get('/create-client', async (req, res) => {
     if (!clientId || !phone_number) {
         res.status(400).json({ error: 'Client ID and phone number are required as query parameters.' });
     } else {
-        await createAndInitializeClient(clientId, phone_number, res);
+        try {
+            const client = await createAndInitializeClient(clientId, phone_number, res);
+            }
+        catch (error) {
+        // Handle errors from createAndInitializeClient
+        }
     }
 });
 
