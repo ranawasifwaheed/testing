@@ -34,7 +34,7 @@ async function createAndInitializeClient(clientId, phone_number, res) {
                 qrCodeData = qr;
                 await prisma.session.upsert({
                     where: { clientId },
-                    update: { qrCodeData, createdAt: timestamp },
+                    update: { phone_number, qrCodeData, createdAt: timestamp },
                     create: { clientId, phone_number, qrCodeData, createdAt: timestamp },
                 });
 
