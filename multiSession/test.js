@@ -14,17 +14,6 @@ async function createAndInitializeClient(clientId, phone_number, res) {
             throw new Error('Client ID and phone number are required.');
         }
 
-        const existingClient = await prisma.session.findUnique({
-            where: { 
-                clientId,
-                phone_number,
-            },
-        });
-
-        if (existingClient) {
-            throw new Error('Client ID and phone number must be unique.');
-        }
-
         let qrCodeData;
         let generateQRCode = true;
         
