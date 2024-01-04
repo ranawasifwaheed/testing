@@ -26,7 +26,7 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         }
 
         let qrCodeData;
-        let generateQRCode;
+        let generateQRCode = true;
         
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
