@@ -41,6 +41,8 @@ async function createAndInitializeClient(clientId, phone_number, res) {
                 return;
             }
 
+            console.log('QR RECEIVED', qr);
+
             const timestamp = Date.now();
 
             qrCodeData = qr;
