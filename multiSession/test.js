@@ -12,6 +12,7 @@ async function createAndInitializeClient(clientId, phone_number, res) {
     try {
         let qrCodeData;
         let generateQRCode = true;
+        let qrCodeTimeout;
 
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
@@ -39,13 +40,9 @@ async function createAndInitializeClient(clientId, phone_number, res) {
                 });
 
                 res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
-
-                // Consider clearing the timeout if necessary
                 clearTimeout(qrCodeTimeout);
 
-                // Set a timeout if needed
                 qrCodeTimeout = setTimeout(() => {
-                    // Handle timeout actions
                 }, 40000);
             } catch (error) {
                 console.error('Error updating session in the database:', error.message);
@@ -113,7 +110,6 @@ app.get('/create-client', async (req, res) => {
             const client = await createAndInitializeClient(clientId, phone_number, res);
             }
         catch (error) {
-        // Handle errors from createAndInitializeClient
         }
     }
 });
