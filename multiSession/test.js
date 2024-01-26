@@ -1,13 +1,13 @@
 const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
-
+const cors = require('cors')
 const prisma = new PrismaClient();
 const app = express();
 const port = 781;
 
 app.use(express.json());
-
+app.use(cors())
 async function createAndInitializeClient(clientId, phone_number, res) {
     try {
         if (!clientId || !phone_number) {
