@@ -29,9 +29,9 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         });
 
         client.on('qr', async (qr) => {
-            if (!generateQRCode) {
-                return;
-            }
+            // if (!generateQRCode) {
+            //     return;
+            // }
 
             console.log('QR RECEIVED', qr);
 
