@@ -1,13 +1,16 @@
 const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
-const cors = require('cors')
+const cors = require('cors');
 const prisma = new PrismaClient();
 const app = express();
 const port = 781;
 
 app.use(express.json());
-app.use(cors())
+app.use(cors({
+    origin: '', 
+    methods: ['GET', 'POST']
+}));
 async function createAndInitializeClient(clientId, phone_number, res) {
     try {
         if (!clientId || !phone_number) {
@@ -112,7 +115,7 @@ app.get('/send-message', async (req, res) => {
 
     try {
         const session = await prisma.session.findUnique({
-            where: { 
+            where: {
                 clientId,
                 phone_number,
             },
@@ -120,14 +123,18 @@ app.get('/send-message', async (req, res) => {
 
         if (!session || session.status !== 'ready') {
             res.status(404).json({ error: 'Client not found or not ready.' });
-        } else {
-            const client = await createAndInitializeClient(clientId, session.phone_number, res);
-            await sendMessage(client, to, message);
-            res.status(200).json({ success: true, message: 'Message sent successfully.' });
+            return;  // Add return to exit the function after sending the response
         }
+
+        const client = await createAndInitializeClient(clientId, session.phone_number, res);
+        await sendMessage(client, to, message);
+        res.status(200).json({ success: true, message: 'Message sent successfully.' });
     } catch (error) {
         console.error('Error sending message:', error.message);
         res.status(500).json({ error: 'Internal server error.' });
+    } finally {
+        // Send status response regardless of whether the message was sent successfully or not
+        sendStatusResponse(clientId, phone_number, res);
     }
 });
 
