@@ -2,9 +2,6 @@ const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
 const cors = require('cors');
-const fs = require('fs').promises;
-const path = require('path');
-
 const prisma = new PrismaClient();
 const app = express();
 const port = 781;
@@ -14,6 +11,7 @@ app.use(cors({
     origin: '', 
     methods: ['GET', 'POST']
 }));
+
 
 
 async function createAndInitializeClient(clientId, phone_number, res) {
@@ -35,22 +33,14 @@ async function createAndInitializeClient(clientId, phone_number, res) {
 
         client.on('qr', async (qr) => {
             console.log('QR RECEIVED', qr);
-
             const timestamp = Date.now();
-
             qrCodeData = qr;
-
-            // Save the QR code as an image file
-            const imagePath = path.join(__dirname, `qr_codes/${clientId}.png`);
-            await saveQRCodeImage(qr, imagePath);
-
+            res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
             await prisma.session.upsert({
                 where: { clientId },
-                update: { phone_number, qrCodeImagePath: imagePath, createdAt: timestamp },
-                create: { clientId, phone_number, qrCodeImagePath: imagePath, createdAt: timestamp },
+                update: { phone_number, qrCodeData, createdAt: timestamp },
+                create: { clientId, phone_number, qrCodeData, createdAt: timestamp },
             });
-
-            res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
         });
 
         client.on('ready', async () => {
@@ -71,15 +61,6 @@ async function createAndInitializeClient(clientId, phone_number, res) {
     }
 }
 
-async function saveQRCodeImage(qrCode, imagePath) {
-    const qrImage = qr.image(qrCode, { type: 'png' });
-    const stream = fs.createWriteStream(imagePath);
-    qrImage.pipe(stream);
-    return new Promise((resolve, reject) => {
-        stream.on('finish', resolve);
-        stream.on('error', reject);
-    });
-}
 
 async function sendStatusResponse(clientId, phone_number, res) {
     try {
