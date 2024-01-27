@@ -133,13 +133,14 @@ app.get('/generateClient', (req, res) => {
         qrImage.pipe(res, { end: true });
 
         console.log(`Client ${clientId} generated`);
-        client.removeListener('qr', onQRReceived);
+        client.destroy();
+        //client.removeListener('qr', onQRReceived);
     };
 
     client.on('qr', onQRReceived);
 
     client.initialize();
-    client.destroy();
+    
 });
 
 
