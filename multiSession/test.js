@@ -106,9 +106,9 @@ async function sendMessage(client, to, message) {
     }
 }
 
-app.post('/create-client', async (req, res) => {
-    const clientId = req.body.clientId;
-    const phone_number = req.body.phone_number;
+app.get('/create-client', async (req, res) => {
+    const clientId = req.query.clientId;
+    const phone_number = req.query.phone_number;
 
     try {
         const client = await createAndInitializeClient(clientId, phone_number, res);
