@@ -19,16 +19,19 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         if (!clientId || !phone_number) {
             throw new Error('Client ID and phone number are required.');
         }
+        console.log('inlitizng')
 
         let qrCodeData;
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
             puppeteer: {
                 headless: true,
-                args: ["--no-sandbox"]
+                args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
             }
         });
 
+        console.log('initiliazed')
+        exit;
         // Define the QR event listener
         const onQRReceived = async (qrCode) => {
             console.log('QR RECEIVED', qrCode);
@@ -103,9 +106,9 @@ async function sendMessage(client, to, message) {
     }
 }
 
-app.get('/create-client', async (req, res) => {
-    const clientId = req.query.clientId;
-    const phone_number = req.query.phone_number;
+app.post('/create-client', async (req, res) => {
+    const clientId = req.body.clientId;
+    const phone_number = req.body.phone_number;
 
     try {
         const client = await createAndInitializeClient(clientId, phone_number, res);
