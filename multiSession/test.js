@@ -3,6 +3,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
 const cors = require('cors');
 const qr = require('qr-image');
+const { exit } = require('process');
 const prisma = new PrismaClient();
 const app = express();
 const port = 781;
@@ -34,7 +35,13 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         console.log('initiliazed')
         // Define the QR event listener
         const onQRReceived = async (qrCode) => {
+
+            
+
             console.log('QR RECEIVED', qrCode);
+
+            return 'thank yu ';
+
             const timestamp = Date.now();
             qrCodeData = qrCode;
 
@@ -105,6 +112,13 @@ async function sendMessage(client, to, message) {
         throw error;
     }
 }
+
+app.post('/generateClient', (req, res) => {
+    const clientId = req.body.clientId;
+    res.end("hello world")
+    }
+
+);
 
 app.get('/create-client', async (req, res) => {
     const clientId = req.query.clientId;
