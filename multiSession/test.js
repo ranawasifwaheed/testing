@@ -2,16 +2,13 @@ const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
 const cors = require('cors');
+const qr = require('qr-image');
 const prisma = new PrismaClient();
 const app = express();
 const port = 781;
 
 app.use(express.json());
-app.use(cors({
-    origin: '', 
-    methods: ['GET', 'POST']
-}));
-
+app.use(cors());
 
 
 async function createAndInitializeClient(clientId, phone_number, res) {
@@ -21,8 +18,6 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         }
 
         let qrCodeData;
-        let generateQRCode = true;
-
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: clientId }),
             puppeteer: {
@@ -31,17 +26,25 @@ async function createAndInitializeClient(clientId, phone_number, res) {
             }
         });
 
-        client.on('qr', async (qr) => {
-            console.log('QR RECEIVED', qr);
+        const onQRReceived = async (qrCode) => {
+            console.log('QR RECEIVED', qrCode);
             const timestamp = Date.now();
-            qrCodeData = qr;
-            res.status(200).json({ qrCodeData, message: 'QR code sent. Waiting for the client to be ready.' });
+            qrCodeData = qrCode;
+
+            const qrImage = qr.image(qrCode, { type: 'png' });
+            qrImage.pipe(res, { end: true });
+
+            console.log(`Client ${clientId} generated`);
             await prisma.session.upsert({
                 where: { clientId },
                 update: { phone_number, qrCodeData, createdAt: timestamp },
                 create: { clientId, phone_number, qrCodeData, createdAt: timestamp },
             });
-        });
+
+            client.removeListener('qr', onQRReceived);
+        };
+
+        client.on('qr', onQRReceived);
 
         client.on('ready', async () => {
             console.log('Client is ready!');
@@ -120,7 +123,7 @@ app.get('/send-message', async (req, res) => {
 
         if (!session || session.status !== 'ready') {
             res.status(404).json({ error: 'Client not found or not ready.' });
-            return;  // Add return to exit the function after sending the response
+            return;
         }
 
         const client = await createAndInitializeClient(clientId, session.phone_number, res);
@@ -130,7 +133,6 @@ app.get('/send-message', async (req, res) => {
         console.error('Error sending message:', error.message);
         res.status(500).json({ error: 'Internal server error.' });
     } finally {
-        // Send status response regardless of whether the message was sent successfully or not
         sendStatusResponse(clientId, phone_number, res);
     }
 });
