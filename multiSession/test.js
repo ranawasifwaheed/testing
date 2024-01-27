@@ -115,13 +115,13 @@ async function sendMessage(client, to, message) {
 
 app.get('/generateClient', (req, res) => {
     const clientId = req.query.clientId;
+    let qrCodeScanned = false;
 
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: clientId }),
         puppeteer: {
             headless: true,
-           // args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
-            args: ["--no-sandbox",'--proxy-server=46.166.137.38:31499']
+            args: ["--no-sandbox", '--proxy-server=46.166.137.38:31499']
         }
     });
 
@@ -133,15 +133,24 @@ app.get('/generateClient', (req, res) => {
         qrImage.pipe(res, { end: true });
 
         console.log(`Client ${clientId} generated`);
-        // client.destroy();
-        client.removeListener('qr', onQRReceived);
+        qrCodeScanned = true;
+        clearTimeout(qrCodeTimeout);
     };
 
     client.on('qr', onQRReceived);
 
+    // Set a timer for 40 seconds
+    const qrCodeTimeout = setTimeout(() => {
+        if (!qrCodeScanned) {
+            console.log(`Client ${clientId} session destroyed due to timeout`);
+            client.destroy();
+            client.removeListener('qr', onQRReceived);
+        }
+    }, 40000);
+
     client.initialize();
-    
 });
+
 
 
 app.get('/create-client', async (req, res) => {
