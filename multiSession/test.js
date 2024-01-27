@@ -26,7 +26,8 @@ async function createAndInitializeClient(clientId, phone_number, res) {
             authStrategy: new LocalAuth({ clientId: clientId }),
             puppeteer: {
                 headless: true,
-                args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
+               // args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
+                args: ["--no-sandbox",'--proxy-server=46.166.137.38:31499']
             }
         });
 
