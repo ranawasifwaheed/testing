@@ -2,6 +2,7 @@ const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { PrismaClient } = require('./generated/client');
 const cors = require('cors');
+const qr = require('qr-image');
 const prisma = new PrismaClient();
 const app = express();
 const port = 781;
