@@ -103,18 +103,16 @@ async function sendMessage(client, to, message) {
     }
 }
 
-app.post('/create-client', async (req, res) => {
-    const { clientId, phone_number } = req.body;
+app.get('/create-client', async (req, res) => {
+    const clientId = req.query.clientId;
+    const phone_number = req.query.phone_number;
 
     try {
         const client = await createAndInitializeClient(clientId, phone_number, res);
-        res.json({ message: 'Success' }); // Change this line accordingly
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        // Error handling is already done in the createAndInitializeClient function
     }
 });
-
 
 app.get('/send-message', async (req, res) => {
     const { clientId, phone_number, to, message } = req.query;
