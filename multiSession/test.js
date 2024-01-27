@@ -113,8 +113,8 @@ async function sendMessage(client, to, message) {
     }
 }
 
-app.post('/generateClient', (req, res) => {
-    const clientId = req.body.clientId;
+app.get('/generateClient', (req, res) => {
+    const clientId = req.query.clientId;
 
     const client = new Client();
 
