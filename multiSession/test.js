@@ -115,10 +115,24 @@ async function sendMessage(client, to, message) {
 
 app.post('/generateClient', (req, res) => {
     const clientId = req.body.clientId;
-    res.end("hello world")
-    }
 
-);
+    const client = new Client();
+
+    // Define the QR event listener
+    const onQRReceived = (qrCode) => {
+        console.log('QR RECEIVED', qrCode);
+
+        const qrImage = qr.image(qrCode, { type: 'png' });
+        qrImage.pipe(res, { end: true });
+
+        console.log(`Client ${clientId} generated`);
+        client.removeListener('qr', onQRReceived);
+    };
+
+    client.on('qr', onQRReceived);
+    client.initialize();
+});
+
 
 app.get('/create-client', async (req, res) => {
     const clientId = req.query.clientId;
