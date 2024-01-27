@@ -116,7 +116,14 @@ async function sendMessage(client, to, message) {
 app.get('/generateClient', (req, res) => {
     const clientId = req.query.clientId;
 
-    const client = new Client();
+    const client = new Client({
+        authStrategy: new LocalAuth({ clientId: clientId }),
+        puppeteer: {
+            headless: true,
+           // args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
+            args: ["--no-sandbox",'--proxy-server=46.166.137.38:31499']
+        }
+    });
 
     // Define the QR event listener
     const onQRReceived = (qrCode) => {
