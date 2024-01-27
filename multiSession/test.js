@@ -137,7 +137,9 @@ app.get('/generateClient', (req, res) => {
     };
 
     client.on('qr', onQRReceived);
+
     client.initialize();
+    client.destroy();
 });
 
 
