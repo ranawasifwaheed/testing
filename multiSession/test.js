@@ -36,11 +36,11 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         // Define the QR event listener
         const onQRReceived = async (qrCode) => {
 
-            
+            return 'thank yu ';
 
             console.log('QR RECEIVED', qrCode);
 
-            return 'thank yu ';
+            
 
             const timestamp = Date.now();
             qrCodeData = qrCode;
