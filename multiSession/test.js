@@ -135,6 +135,7 @@ app.get('/generateClient', (req, res) => {
         console.log(`Client ${clientId} generated`);
         qrCodeScanned = true;
         clearTimeout(qrCodeTimeout);
+        client.removeListener('qr', onQRReceived);
     };
 
     client.on('qr', onQRReceived);
@@ -142,14 +143,14 @@ app.get('/generateClient', (req, res) => {
     // Set a timer for 40 seconds
     const qrCodeTimeout = setTimeout(() => {
         if (!qrCodeScanned) {
-            console.log(`Client ${clientId} session destroyed due to timeout`);
-            client.destroy();
+            console.log(`Client ${clientId} QR code listener removed due to timeout`);
             client.removeListener('qr', onQRReceived);
         }
     }, 40000);
 
     client.initialize();
 });
+
 
 
 
