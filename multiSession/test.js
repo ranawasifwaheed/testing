@@ -31,7 +31,6 @@ async function createAndInitializeClient(clientId, phone_number, res) {
         });
 
         console.log('initiliazed')
-        exit;
         // Define the QR event listener
         const onQRReceived = async (qrCode) => {
             console.log('QR RECEIVED', qrCode);
