@@ -114,27 +114,7 @@ async function sendMessage(client, to, message) {
 }
 
 app.get('/generateClient', async (req, res) => {
-    const clientId = req.query.clientId;  
-    const onQRReceived = async (qrCode) => {
-      console.log('QR RECEIVED', qrCode);
-  
-      await prisma.session.upsert({
-        where: { clientId: clientId },
-        update: { qrCodeData: qrCode },
-        create: {
-          clientId: clientId,
-          qrCodeData: qrCode,
-          phone_number: req.query.phone_number || null,
-          createdAt: Math.floor(Date.now() / 1000),
-        },
-      });
-  
-      const qrImage = qr.image(qrCode, { type: 'png' });
-      qrImage.pipe(res, { end: true });
-  
-      console.log(`Client ${clientId} generated`);
-      client.removeListener('qr', onQRReceived);
-    };
+    const clientId = req.query.clientId;
   
     const previousSession = await prisma.session.findUnique({
       where: { clientId: clientId },
@@ -148,11 +128,39 @@ app.get('/generateClient', async (req, res) => {
       }
     });
   
-    client.on('qr', onQRReceived);
+    if (!previousSession) {
+      // If no previous session, generate a new QR code and send it
+      const onQRReceived = async (qrCode) => {
+        console.log('QR RECEIVED', qrCode);
   
-    if (previousSession) {
-      client.initialize(previousSession.qrCodeData);
+        const sessionData = {
+          clientId: clientId,
+          qrCodeData: qrCode,
+          phone_number: req.query.phone_number || null,
+          createdAt: Math.floor(Date.now() / 1000),
+        };
+  
+        await prisma.session.upsert({
+          where: { clientId: clientId },
+          update: { qrCodeData: qrCode },
+          create: sessionData,
+        });
+  
+        const qrImage = qr.image(qrCode, { type: 'png' });
+        
+        qrImage.pipe(res, { end: true });
+        
+  
+        console.log(`Client ${clientId} generated`);
+        client.removeListener('qr', onQRReceived);
+      };
+  
+      client.on('qr', onQRReceived);
+      client.initialize();
     } else {
+      const qrImage = qr.image(previousSession.qrCodeData, { type: 'png' });
+      qrImage.pipe(res, { end: true });
+      console.log(`Sending QR code from the previous session for client ${clientId}`);
       client.initialize();
     }
   });
