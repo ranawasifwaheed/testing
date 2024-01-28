@@ -113,46 +113,61 @@ async function sendMessage(client, to, message) {
     }
 }
 
-app.get('/generateClient', (req, res) => {
+app.get('/generateClient', async (req, res) => {
     const clientId = req.query.clientId;
     let qrCodeScanned = false;
-
-    const client = new Client({
-        authStrategy: new LocalAuth({ clientId: clientId }),
-        puppeteer: {
-            headless: true,
-            args: ["--no-sandbox", '--proxy-server=46.166.137.38:31499']
-        }
-    });
-
-    // Define the QR event listener
-    const onQRReceived = (qrCode) => {
-        console.log('QR RECEIVED', qrCode);
-
-        const qrImage = qr.image(qrCode, { type: 'png' });
-        qrImage.pipe(res, { end: true });
-
-        console.log(`Client ${clientId} generated`);
-        qrCodeScanned = true;
-        clearTimeout(qrCodeTimeout);
-        client.removeListener('qr', onQRReceived);
+  
+    const onQRReceived = async (qrCode) => {
+      console.log('QR RECEIVED', qrCode);
+  
+      await prisma.session.upsert({
+        where: { clientId: clientId },
+        update: { qrCodeData: qrCode },
+        create: {
+          clientId: clientId,
+          qrCodeData: qrCode,
+          phone_number: req.query.phone_number || null,
+          createdAt: Math.floor(Date.now() / 1000),
+        },
+      });
+  
+      const qrImage = qr.image(qrCode, { type: 'png' });
+      qrImage.pipe(res, { end: true });
+  
+      console.log(`Client ${clientId} generated`);
+      qrCodeScanned = true;
+      clearTimeout(qrCodeTimeout);
+      client.removeListener('qr', onQRReceived);
     };
-
+  
+    const previousSession = await prisma.session.findUnique({
+      where: { clientId: clientId },
+    });
+  
+    const client = new Client({
+      authStrategy: new LocalAuth({ clientId: clientId }),
+      puppeteer: {
+        headless: true,
+        args: ["--no-sandbox", '--proxy-server=46.166.137.38:31499']
+      }
+    });
+  
     client.on('qr', onQRReceived);
-
-    // Set a timer for 40 seconds
+  
     const qrCodeTimeout = setTimeout(() => {
-        if (!qrCodeScanned) {
-            console.log(`Client ${clientId} QR code listener removed due to timeout`);
-            client.removeListener('qr', onQRReceived);
-        }
+      if (!qrCodeScanned) {
+        console.log(`Client ${clientId} QR code listener removed due to timeout`);
+        client.removeListener('qr', onQRReceived);
+      }
     }, 40000);
-
-    client.initialize();
-});
-
-
-
+  
+    if (previousSession) {
+      client.initialize(previousSession.qrCodeData);
+    } else {
+      client.initialize();
+    }
+  });
+  
 
 app.get('/create-client', async (req, res) => {
     const clientId = req.query.clientId;
