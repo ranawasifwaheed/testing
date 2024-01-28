@@ -114,9 +114,7 @@ async function sendMessage(client, to, message) {
 }
 
 app.get('/generateClient', async (req, res) => {
-    const clientId = req.query.clientId;
-    let qrCodeScanned = false;
-  
+    const clientId = req.query.clientId;  
     const onQRReceived = async (qrCode) => {
       console.log('QR RECEIVED', qrCode);
   
@@ -135,8 +133,6 @@ app.get('/generateClient', async (req, res) => {
       qrImage.pipe(res, { end: true });
   
       console.log(`Client ${clientId} generated`);
-      qrCodeScanned = true;
-      clearTimeout(qrCodeTimeout);
       client.removeListener('qr', onQRReceived);
     };
   
@@ -153,13 +149,6 @@ app.get('/generateClient', async (req, res) => {
     });
   
     client.on('qr', onQRReceived);
-  
-    const qrCodeTimeout = setTimeout(() => {
-      if (!qrCodeScanned) {
-        console.log(`Client ${clientId} QR code listener removed due to timeout`);
-        client.removeListener('qr', onQRReceived);
-      }
-    }, 40000);
   
     if (previousSession) {
       client.initialize(previousSession.qrCodeData);
