@@ -21,7 +21,7 @@ app.get('/initialize-client', async (req, res) => {
             authStrategy: new LocalAuth({ clientId }),
             puppeteer: {
               headless: true,
-            //   args: ["--no-sandbox", '--proxy-server=46.166.137.38:31499']
+               args: ["--no-sandbox", '--proxy-server=46.166.137.38:31499']
             }
           });
         client.on('qr', (qrCode) => {
