@@ -13,8 +13,8 @@ app.use(cors({
 app.use(bodyParser.json());
 
 
-app.post('/initialize-client', async (req, res) => {
-    const { clientId } = req.body;
+app.get('/initialize-client', async (req, res) => {
+    const { clientId } = req.query;
 
     try {
         const client = new Client({
