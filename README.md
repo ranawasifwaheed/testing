@@ -8,9 +8,9 @@ This documentation outlines the usage and functionality of the WhatsApp Web API 
 
 1. [Overview](#overview)
 2. [Endpoints](#endpoints)
-   - [1. Create Client](#1-create-client)
-   - [2. Send Message](#2-send-message)
-   - [3. Check Status](#3-check-status)
+   - [1. Create Client](#1-initialize-client)
+   - [2. Send Message](#2-message)
+   - [3. Check Status](#3-status)
 3. [Error Handling](#error-handling)
 
 ## Overview
