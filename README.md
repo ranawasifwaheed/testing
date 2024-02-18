@@ -21,24 +21,40 @@ This WhatsApp Web API server is designed to enable interaction with WhatsApp Web
 
 ### 1. Create Client
 
+<<<<<<< HEAD
 **Endpoint:** `/initialize-client`
+=======
+**Endpoint:** `/create-client`
+>>>>>>> 0e0720cf7b07365db9d0f256818d4d4bef6052e0
 
 **Method:** `GET`
 
 **Parameters:**
 - `clientId`  Unique identifier for the client.
+<<<<<<< HEAD
+=======
+- `phone_number`  Phone number associated with the WhatsApp account.
+>>>>>>> 0e0720cf7b07365db9d0f256818d4d4bef6052e0
 
 **Description:**
 This endpoint initializes a WhatsApp client session, generates a QR code, and stores the session details in the database.
 
 **Response:**
+<<<<<<< HEAD
 - `200 OK`: Successfully created the client. Returns the QR code data.
+=======
+- `200 OK`: Successfully created the client. Returns the base64 encoded QR code data.
+>>>>>>> 0e0720cf7b07365db9d0f256818d4d4bef6052e0
 - `400 Bad Request`: Missing or invalid parameters.
 - `500 Internal Server Error`: Failed to create or initialize the client.
 
 ### 2. Send Message
 
+<<<<<<< HEAD
 **Endpoint:** `/message`
+=======
+**Endpoint:** `/send-message`
+>>>>>>> 0e0720cf7b07365db9d0f256818d4d4bef6052e0
 
 **Method:** `GET`
 
@@ -64,6 +80,11 @@ This endpoint sends a message to a recipient using an existing WhatsApp client s
 
 **Parameters:**
 - `clientId` Unique identifier for the client.
+<<<<<<< HEAD
+=======
+- `phone_number` Phone number associated with the WhatsApp account.
+
+>>>>>>> 0e0720cf7b07365db9d0f256818d4d4bef6052e0
 **Description:**
 This endpoint retrieves the status of a WhatsApp client session.
 

@@ -1,0 +1,7 @@
+{
+    "port":781,
+    "webhook":{
+        "enabled":false,
+        "path":""
+    }
+}

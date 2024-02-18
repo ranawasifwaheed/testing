@@ -1,0 +1,19 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  clientId     String    @unique
+  qrCodeData   String
+  phone_number String?   @unique
+  createdAt    Int
+}
