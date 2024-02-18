@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const qr = require('qr-image');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 781;
 app.use(cors({
     origin: '', 
     methods: ['GET', 'POST']
