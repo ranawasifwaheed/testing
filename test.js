@@ -31,14 +31,17 @@ app.get('/initialize-client', async (req, res) => {
             }
         });
         client.on('qr', (qrCode) => {
-            console.log(`QR RECEIVED for ${clientId}`, qrCode);
-            const qrImage = qr.image(qrCode, { type: 'png' });
-            qrImage.pipe(res, { end: true });
+            res.status(200).json({ qrcode: qrCode });
         });
 
         client.on('ready', () => {
             console.log(`Client is ready for ${clientId}`);
             activeClients[clientId] = client;
+        });
+
+        client.on('disconnected', (reason) => {
+            console.log(`Client for ${clientId} was logged out`, reason);
+            delete activeClients[clientId];
         });
 
         client.initialize();
