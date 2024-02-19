@@ -56,8 +56,9 @@ app.get('/initialize-client', async (req, res) => {
             }
 
             console.log(`QR RECEIVED for ${clientId}`, qrCode);
-            const qrImage = qr.image(qrCode, { type: 'png' });
-            qrImage.pipe(res, { end: true });
+            res.status(200).json({ qrcode: qrCode});
+            // const qrImage = qr.image(qrCode, { type: 'png' });
+            // qrImage.pipe(res, { end: true });
         });
 
         client.on('ready', async () => {
