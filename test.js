@@ -31,14 +31,16 @@ app.get('/initialize-client', async (req, res) => {
         const existingQRCode = await prisma.qRCode.findFirst({
             where: { clientId, status: 0 },
         });
-
         const client = new Client({
             qrMaxRetries: 1,
-            authStrategy: new LocalAuth({ clientId }),
+            authStrategy: new LocalAuth({ clientId: clientId }),
             puppeteer: {
                 headless: true,
+               // args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
+                args: ["--no-sandbox",'--proxy-server=46.166.137.38:31499']
             }
         });
+
         let updatedQRCode;
 
         client.on('qr', async (qrCode) => {
