@@ -64,10 +64,11 @@ app.get('/initialize-client', async (req, res) => {
         });
 
         client.on('ready', async () => {
+            const user = client.info.me.user;
             console.log(`Client is ready for ${clientId}`);
                 await prisma.qRCode.update({
                 where: { id: updatedQRCode.id },
-                data: { status: 1}
+                data: { status: 1, phone_number: user}
             });
             activeClients[clientId] = client;
         });
