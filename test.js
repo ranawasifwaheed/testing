@@ -29,7 +29,7 @@ app.get('/initialize-client', async (req, res) => {
         }
 
         const existingQRCode = await prisma.qRCode.findFirst({
-            where: { clientId, status: 0 },
+            where: { clientId },
         });
         const client = new Client({
             qrMaxRetries: 1,
