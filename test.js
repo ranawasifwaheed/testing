@@ -29,7 +29,7 @@ app.get('/initialize-client', async (req, res) => {
         }
 
         const existingQRCode = await prisma.qRCode.findFirst({
-            where: { clientId },
+            where: { clientId},
         });
         const client = new Client({
             qrMaxRetries: 1,
@@ -58,9 +58,9 @@ app.get('/initialize-client', async (req, res) => {
             }
 
             console.log(`QR RECEIVED for ${clientId}`, qrCode);
-            res.status(200).json({ qrcode: qrCode});
-            // const qrImage = qr.image(qrCode, { type: 'png' });
-            // qrImage.pipe(res, { end: true });
+            // res.status(200).json({ qrcode: qrCode});
+            const qrImage = qr.image(qrCode, { type: 'png' });
+            qrImage.pipe(res, { end: true });
         });
 
         client.on('ready', async () => {
