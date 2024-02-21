@@ -15,8 +15,9 @@ app.use(cors({
 app.use(bodyParser.json());
 
 const activeClients = {};
+
 app.get('/initialize-client', async (req, res) => {
-    const { clientId, phone_number } = req.query;
+    const { clientId } = req.query;
 
     try {
         const existingClient = await prisma.qRCode.findFirst({
@@ -29,8 +30,9 @@ app.get('/initialize-client', async (req, res) => {
         }
 
         const existingQRCode = await prisma.qRCode.findFirst({
-            where: { clientId},
+            where: { clientId },
         });
+
         const client = new Client({
             qrMaxRetries: 1,
             authStrategy: new LocalAuth({ clientId: clientId }),
@@ -41,40 +43,47 @@ app.get('/initialize-client', async (req, res) => {
             }
         });
 
+        client.initialize([clientId]);
+
         let updatedQRCode;
 
         client.on('qr', async (qrCode) => {
-            
             if (existingQRCode) {
                 updatedQRCode = await prisma.qRCode.update({
                     where: { id: existingQRCode.id },
-                    data: { qrCode, phone_number }
+                    data: { qrCode }
                 });
             } else {
                 updatedQRCode = await prisma.qRCode.create({
-                    data: { clientId, qrCode, phone_number, status: 0 }
+                    data: { clientId, qrCode, status: 0 }
                 });
-                
             }
 
             console.log(`QR RECEIVED for ${clientId}`, qrCode);
-            // res.status(200).json({ qrcode: qrCode});
             const qrImage = qr.image(qrCode, { type: 'png' });
             qrImage.pipe(res, { end: true });
         });
 
         client.on('ready', async () => {
             const user = client.info.me.user;
+            console.log('User:', user);
             console.log(`Client is ready for ${clientId}`);
-                await prisma.qRCode.update({
+            await prisma.qRCode.update({
                 where: { id: updatedQRCode.id },
-                data: { status: 1, phone_number: user}
+                data: { status: 1, phone_number: user }
             });
             activeClients[clientId] = client;
         });
 
-        client.on('disconnected', async (reason) => {
-            console.log(`Client for ${clientId} was logged out`, reason);
+        client.on('authenticated', () => {
+            console.error(clientId + ' authenticated');
+        });
+
+        client.on('auth_failure', () => {
+            console.log('auth_failure', );
+        });
+
+        client.on('disconnected', async () => {
             await prisma.qRCode.update({
                 where: { id: updatedQRCode.id },
                 data: { status: 0 }
@@ -82,13 +91,13 @@ app.get('/initialize-client', async (req, res) => {
             delete activeClients[clientId];
         });
 
-        client.initialize();
+        
 
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: "Internal server error" });
     }
-});
+})
 
 
 app.get('/status', (req, res, next) => {
