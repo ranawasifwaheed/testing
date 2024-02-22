@@ -124,20 +124,21 @@ app.get('/message', async (req, res, next) => {
     
 
     const client = activeClients[requestedClientId];
-    const user = client.info.me.user;
+    
 
     if (!requestedClientId || !number || !text || !clientPhoneNumber) {
         res.status(400).json({ error: 'clientId, number, text and clientPhoneNumber are required in the query parameters' });
         return;
     }
 
-    if (user !== clientPhoneNumber) {
-        console.log(`User and client phone number do not match for ${requestedClientId}`);
-        res.status(400).json({ error: 'User and client phone number do not match' });
-        return;
-    }
-
     if (client) {
+        const user = client.info.me.user
+        if (user !== clientPhoneNumber) {
+            console.log(`User and client phone number do not match for ${requestedClientId}`);
+            res.status(400).json({ error: 'User and client phone number do not match' });
+            return;
+        
+    }
         const chatId = number.substring(1) + "@c.us";
         client.sendMessage(chatId, text);
 
@@ -154,6 +155,34 @@ app.get('/message', async (req, res, next) => {
             console.error("Error saving message log:", error);
             res.status(500).json({ error: 'Internal server error' });
         }
+    } else {
+        res.status(404).json({ error: `Client ${requestedClientId} not found or not ready` });
+    }
+});
+
+
+
+app.get('/logout', (req, res, next) => {
+    const requestedClientId = req.query.clientId;
+
+    if (!requestedClientId) {
+        res.status(400).json({ error: 'clientId is required in the query parameters' });
+        return;
+    }
+
+    const client = activeClients[requestedClientId];
+    console.log(client);
+    
+    if (client) {
+        client.on('logout', (reason) => {
+            // client.destroy();
+            console.log(`Client for ${requestedClientId} was logged out`, reason);
+            delete activeClients[requestedClientId];
+            client.initialize()
+
+        });
+    
+        res.status(200).json({ message: `Client ${requestedClientId} was logged out` });
     } else {
         res.status(404).json({ error: `Client ${requestedClientId} not found or not ready` });
     }
