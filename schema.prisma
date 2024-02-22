@@ -16,7 +16,7 @@ model QRCode {
   clientId     String
   qrCode       String
   status       Int      @default(0)
-  phone_number String
+  phone_number String   @default("none")
   client       String   @default("none")
   createdAt    DateTime @default(now())
 }

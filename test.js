@@ -120,13 +120,22 @@ app.get('/message', async (req, res, next) => {
     const requestedClientId = req.query.clientId;
     const number = req.query.to;
     const text = req.query.message;
+    const clientPhoneNumber = req.query.clientPhoneNumber;
+    
 
-    if (!requestedClientId || !number || !text) {
-        res.status(400).json({ error: 'clientId, number, and text are required in the query parameters' });
+    const client = activeClients[requestedClientId];
+    const user = client.info.me.user;
+
+    if (!requestedClientId || !number || !text || !clientPhoneNumber) {
+        res.status(400).json({ error: 'clientId, number, text and clientPhoneNumber are required in the query parameters' });
         return;
     }
 
-    const client = activeClients[requestedClientId];
+    if (user !== clientPhoneNumber) {
+        console.log(`User and client phone number do not match for ${requestedClientId}`);
+        res.status(400).json({ error: 'User and client phone number do not match' });
+        return;
+    }
 
     if (client) {
         const chatId = number.substring(1) + "@c.us";
