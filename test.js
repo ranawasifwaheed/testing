@@ -7,7 +7,7 @@ const { PrismaClient } = require("./generated/client");
 const prisma = new PrismaClient();
 const cors = require('cors');
 const app = express();
-const port = 781;
+const port = process.env.PORT || 781;
 app.use(cors({
     origin: '', 
     methods: ['GET', 'POST']
@@ -18,6 +18,10 @@ const activeClients = {};
 
 app.get('/initialize-client', async (req, res) => {
     const { clientId } = req.query;
+    const secretKey = req.query.secretKey;
+    if (!secretKey || secretKey !== process.env.SECRET_KEY) {
+        return res.status(401).json({ error: 'Unauthorized. Invalid secret key.' });
+    }
 
     try {
         const existingClient = await prisma.qRCode.findFirst({
@@ -102,6 +106,10 @@ app.get('/initialize-client', async (req, res) => {
 
 app.get('/status', (req, res, next) => {
     const requestedClientId = req.query.clientId;
+    const secretKey = req.query.secretKey;
+    if (!secretKey || secretKey !== process.env.SECRET_KEY) {
+        return res.status(401).json({ error: 'Unauthorized. Invalid secret key.' });
+    }
 
     if (!requestedClientId) {
         res.status(400).json({ error: 'clientId is required in the query parameters' });
@@ -121,16 +129,17 @@ app.get('/message', async (req, res, next) => {
     const number = req.query.to;
     const text = req.query.message;
     const clientPhoneNumber = req.query.clientPhoneNumber;
-    
-
-    const client = activeClients[requestedClientId];
+    const secretKey = req.query.secretKey;
+    if (!secretKey || secretKey !== process.env.SECRET_KEY) {
+        return res.status(401).json({ error: 'Unauthorized. Invalid secret key.' });
+    }
     
 
     if (!requestedClientId || !number || !text || !clientPhoneNumber) {
         res.status(400).json({ error: 'clientId, number, text and clientPhoneNumber are required in the query parameters' });
         return;
     }
-
+    const client = activeClients[requestedClientId];
     if (client) {
         const user = client.info.me.user
         if (user !== clientPhoneNumber) {

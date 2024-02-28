@@ -19,19 +19,6 @@ app.get('/initialize-client', async (req, res) => {
     const { clientId, phone_number } = req.query;
 
     try {
-        const existingClient = await prisma.qRCode.findFirst({
-            where: { clientId, status: 1 },
-        });
-
-        if (existingClient) {
-            res.status(400).json({ error: `Client ${clientId} already initialized` });
-            return;
-        }
-
-        const existingQRCode = await prisma.qRCode.findFirst({
-            where: { clientId, status: 0 },
-        });
-
         const client = new Client({
             qrMaxRetries: 1,
             authStrategy: new LocalAuth({ clientId }),
@@ -39,6 +26,12 @@ app.get('/initialize-client', async (req, res) => {
                 headless: true,
             }
         });
+
+        const existingQRCode = await prisma.qRCode.findFirst({
+            where: { clientId },
+        });
+
+        
         let updatedQRCode;
 
         client.on('qr', async (qrCode) => {
