@@ -94,7 +94,7 @@ app.get('/initialize-client', async (req, res) => {
             });
             delete activeClients[clientId];
         });
-
+        client.destroy()
         
 
     } catch (error) {
