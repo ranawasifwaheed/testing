@@ -52,7 +52,7 @@ app.get('/initialize-client', async (req, res) => {
             }
         });
 
-        client.initialize()
+        
         let updatedQRCode;
 
         client.on('qr', async (qrCode) => {
@@ -92,14 +92,6 @@ app.get('/initialize-client', async (req, res) => {
             }
         });
 
-        client.on('authenticated', () => {
-            console.log(`${clientId} authenticated`);
-        });
-
-        client.on('auth_failure', (msg) => {
-            console.error('Authentication failed:', msg);
-        });
-
         client.on('disconnected', async (reason) => {
             console.log(`Client for ${clientId} disconnected:`, reason);
             try {
@@ -112,6 +104,7 @@ app.get('/initialize-client', async (req, res) => {
                 console.error("Error updating client status in the database after disconnection:", error);
             }
         });
+        client.initialize();
 
     } catch (error) {
         console.error("Error initializing client:", error);
