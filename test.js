@@ -83,7 +83,8 @@ app.get('/initialize-client', async (req, res) => {
                 const user = client.info.me.user;
                 console.log('User:', user);
                 console.log(`Client is ready for ${clientId}`);
-                await prisma.qRCode.update({                    where: { id: updatedQRCode.id },
+                await prisma.qRCode.update({
+                    where: { id: updatedQRCode.id },
                     data: { status: 1, phone_number: user }
                 });
                 activeClients[clientId] = client;
@@ -185,6 +186,3 @@ app.get('/message', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on http://207.244.239.151:${port}`);
 });
-
-                   
-
