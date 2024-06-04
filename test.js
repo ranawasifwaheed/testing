@@ -40,6 +40,12 @@ app.get('/initialize-client', async (req, res) => {
         const client = new Client({
             qrMaxRetries: 1,
             authStrategy: new LocalAuth({ clientId: clientId }),
+            restartOnAuthFail: true,
+            webVersion: '2.2409.2',
+            webVersionCache: {
+            type: 'remote',
+            remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html'
+        },
             puppeteer: {
                 headless: true,
                // args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
@@ -94,8 +100,8 @@ app.get('/initialize-client', async (req, res) => {
             });
             delete activeClients[clientId];
         });
-        client.destroy()
-        
+
+        client.destroy();
 
     } catch (error) {
         console.error("Error:", error);
@@ -171,31 +177,31 @@ app.get('/message', async (req, res, next) => {
 
 
 
-app.get('/logout', (req, res, next) => {
-    const requestedClientId = req.query.clientId;
+// app.get('/logout', (req, res, next) => {
+//     const requestedClientId = req.query.clientId;
 
-    if (!requestedClientId) {
-        res.status(400).json({ error: 'clientId is required in the query parameters' });
-        return;
-    }
+//     if (!requestedClientId) {
+//         res.status(400).json({ error: 'clientId is required in the query parameters' });
+//         return;
+//     }
 
-    const client = activeClients[requestedClientId];
-    console.log(client);
+//     const client = activeClients[requestedClientId];
+//     console.log(client);
     
-    if (client) {
-        client.on('logout', (reason) => {
-            // client.destroy();
-            console.log(`Client for ${requestedClientId} was logged out`, reason);
-            delete activeClients[requestedClientId];
-            client.initialize()
+//     if (client) {
+//         client.on('logout', (reason) => {
+//             // client.destroy();
+//             console.log(`Client for ${requestedClientId} was logged out`, reason);
+//             delete activeClients[requestedClientId];
+//             client.initialize()
 
-        });
+//         });
     
-        res.status(200).json({ message: `Client ${requestedClientId} was logged out` });
-    } else {
-        res.status(404).json({ error: `Client ${requestedClientId} not found or not ready` });
-    }
-});
+//         res.status(200).json({ message: `Client ${requestedClientId} was logged out` });
+//     } else {
+//         res.status(404).json({ error: `Client ${requestedClientId} not found or not ready` });
+//     }
+// });
 
 app.listen(port, () => {
     console.log(`Server is running on http://207.244.239.151:${port}`);
