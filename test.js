@@ -52,7 +52,6 @@ app.get('/initialize-client', async (req, res) => {
             }
         });
 
-        client.initialize();
 
         let updatedQRCode;
 
@@ -113,6 +112,8 @@ app.get('/initialize-client', async (req, res) => {
                 console.error("Error updating client status in the database after disconnection:", error);
             }
         });
+        client.initialize();
+
 
     } catch (error) {
         console.error("Error initializing client:", error);
