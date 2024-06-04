@@ -52,7 +52,7 @@ app.get('/initialize-client', async (req, res) => {
             }
         });
 
-
+        client.initialize()
         let updatedQRCode;
 
         client.on('qr', async (qrCode) => {
