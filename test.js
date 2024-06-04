@@ -101,8 +101,6 @@ app.get('/initialize-client', async (req, res) => {
             delete activeClients[clientId];
         });
 
-        client.destroy();
-
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: "Internal server error" });
