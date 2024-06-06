@@ -41,11 +41,13 @@ app.get('/initialize-client', async (req, res) => {
             qrMaxRetries: 1,
             authStrategy: new LocalAuth({ clientId: clientId }),
             restartOnAuthFail: true,
-            webVersion: "2.2412.54",
-            webVersionCache: {
-                type: "remote",
-                remotePath:
-                "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1013951450-alpha.html",
+            {
+              webVersion: "2.2412.54",
+              webVersionCache: {
+                    type: "remote",
+                    remotePath:
+                      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+                  },
             },
      
             puppeteer: {
