@@ -7,7 +7,7 @@ const { PrismaClient } = require("./generated/client");
 const prisma = new PrismaClient();
 const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 781;
 app.use(cors({
     origin: '', 
     methods: ['GET', 'POST']
@@ -18,12 +18,20 @@ const activeClients = {};
 
 app.get('/initialize-client', async (req, res) => {
     const { clientId } = req.query;
-    // const secretKey = req.query.secretKey;
-    // if (!secretKey || secretKey !== process.env.SECRET_KEY) {
-    //     return res.status(401).json({ error: 'Unauthorized. Invalid secret key.' });
-    // }
+    const secretKey = req.query.secretKey;
+    if (!secretKey || secretKey !== process.env.SECRET_KEY) {
+        return res.status(401).json({ error: 'Unauthorized. Invalid secret key.' });
+    }
 
     try {
+        const existingClient = await prisma.qRCode.findFirst({
+            where: { clientId, status: 1 },
+        });
+
+        if (existingClient) {
+            res.status(400).json({ error: `Client ${clientId} already initialized` });
+            return;
+        }
 
         const existingQRCode = await prisma.qRCode.findFirst({
             where: { clientId },
@@ -32,10 +40,18 @@ app.get('/initialize-client', async (req, res) => {
         const client = new Client({
             qrMaxRetries: 1,
             authStrategy: new LocalAuth({ clientId: clientId }),
+            restartOnAuthFail: true,
+            webVersion: "2.2412.54",
+            webVersionCache: {
+                type: "remote",
+                remotePath:
+                    "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+            },
+     
             puppeteer: {
                 headless: true,
                // args: ["--no-sandbox",'--proxy-server=147.185.238.169:50002']
-                // args: ["--no-sandbox",'--proxy-server=46.166.137.38:31499']
+                args: ["--no-sandbox",'--proxy-server=46.166.137.38:31499']
             }
         });
 
@@ -86,7 +102,7 @@ app.get('/initialize-client', async (req, res) => {
             });
             delete activeClients[clientId];
         });
-        client.destroy()
+
         
 
     } catch (error) {
@@ -190,5 +206,5 @@ app.get('/logout', (req, res, next) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://207.244.239.151:${port}`);
 });
